@@ -143,6 +143,6 @@ jobs:
           sshpass -p "$SSH_PASSWORD" rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" dist codoid@$SERVER:$REMOTE_DIR
 
           # Validation step (optional)
-          curl -f http://$SERVER:your-port/healthcheck || { echo "❌ Healthcheck failed"; exit 1; }
+          # curl -f http://$SERVER:your-port/healthcheck || { echo "❌ Healthcheck failed"; exit 1; }
 
           echo "✅ Deployment finished successfully!"
