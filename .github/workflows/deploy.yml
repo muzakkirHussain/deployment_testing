@@ -36,7 +36,7 @@ jobs:
           # Choose server and remote dir based on branch
           SERVER="122.186.126.218"
           if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
-            REMOTE_DIR="/home/codoid/sathish_property/live_deploy"
+            REMOTE_DIR="/home/codoid/sathish_property/deploy_test"
           elif [[ $GITHUB_REF == 'refs/heads/dev' ]]; then
             REMOTE_DIR="/home/codoid/sathish_property/dev_deploy"
           elif [[ $GITHUB_REF == 'refs/heads/testing' ]]; then
