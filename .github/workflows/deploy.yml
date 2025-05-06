@@ -18,7 +18,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 23
+          node-version: 20
 
       - name: Install dependencies
         run: npm install
@@ -60,7 +60,7 @@ jobs:
             fi
           "
 
-          # Deploy dist folder
-          sshpass -p "$SSH_PASSWORD" rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" dist/ codoid@$SERVER:$REMOTE_DIR
+          # Deploy dist folder (send dist folder itself, not just contents)
+          sshpass -p "$SSH_PASSWORD" rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" dist codoid@$SERVER:$REMOTE_DIR
 
           echo "✅ Deployment finished!"
