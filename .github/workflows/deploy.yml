@@ -12,28 +12,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: 📦 Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install Node.js
+      - name: 🔧 Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: 📥 Install dependencies
         run: npm install
 
-      - name: Build Vite app
+      - name: 🛠️ Build Vite app
         run: npm run build
 
-      - name: Install sshpass
+      - name: 🛡️ Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      - name: Deploy to server via rsync with password
+      - name: 🚀 Deploy to server
         env:
           SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
         run: |
-          # Choose server and remote dir based on branch
+          echo "🔎 Detecting branch and setting server paths..."
+
           SERVER="122.186.126.218"
           if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
             REMOTE_DIR="/home/codoid/sathish_property/deploy_test"
@@ -42,25 +43,30 @@ jobs:
           elif [[ $GITHUB_REF == 'refs/heads/testing' ]]; then
             REMOTE_DIR="/home/codoid/sathish_property/deploy_test"
           else
-            echo "Branch not configured for deployment"
+            echo "❌ Branch not configured for deployment"
             exit 1
           fi
 
-          echo "🚀 Deploying to $SERVER:$REMOTE_DIR"
+          echo "🌐 Server: $SERVER"
+          echo "📂 Remote dir: $REMOTE_DIR"
 
-          # Backup existing dist folder (only if exists)
+          echo "🔄 Starting backup of existing dist folder (if any)..."
+
+          # Backup using IST timezone
           sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no codoid@$SERVER "
             if [ -d $REMOTE_DIR/dist ]; then
-              TIMESTAMP=\$(date +%Y%m%d-%H%M%S)
+              TIMESTAMP=\$(TZ='Asia/Kolkata' date +%Y%m%d-%H%M%S)
               mkdir -p $REMOTE_DIR/backups
               cp -r $REMOTE_DIR/dist $REMOTE_DIR/backups/dist_backup_\$TIMESTAMP
-              echo '✅ Backup created at $REMOTE_DIR/backups/dist_backup_\$TIMESTAMP'
+              echo '✅ Backup created at $REMOTE_DIR/backups/dist_backup_\$TIMESTAMP (IST)'
             else
               echo 'ℹ️ No existing dist folder found to backup'
             fi
           "
 
-          # Deploy dist folder (send dist folder itself, not just contents)
+          echo "📤 Deploying new dist folder to server..."
+
+          # Deploy dist folder (send dist folder itself)
           sshpass -p "$SSH_PASSWORD" rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" dist codoid@$SERVER:$REMOTE_DIR
 
-          echo "✅ Deployment finished!"
+          echo "✅ Deployment finished successfully!"
