@@ -48,15 +48,15 @@ jobs:
 
           echo "🚀 Deploying to $SERVER:$REMOTE_DIR"
 
-          # Backup existing build
+          # Backup existing dist folder (only if exists)
           sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no codoid@$SERVER "
-            if [ -d $REMOTE_DIR ]; then
+            if [ -d $REMOTE_DIR/dist ]; then
               TIMESTAMP=\$(date +%Y%m%d-%H%M%S)
-              BACKUP_DIR=\${REMOTE_DIR}_backup_\$TIMESTAMP
-              cp -r $REMOTE_DIR \$BACKUP_DIR
-              echo '✅ Backup created at \$BACKUP_DIR'
+              mkdir -p $REMOTE_DIR/backups
+              cp -r $REMOTE_DIR/dist $REMOTE_DIR/backups/dist_backup_\$TIMESTAMP
+              echo '✅ Backup created at $REMOTE_DIR/backups/dist_backup_\$TIMESTAMP'
             else
-              echo 'ℹ️ No existing build found to backup'
+              echo 'ℹ️ No existing dist folder found to backup'
             fi
           "
 
