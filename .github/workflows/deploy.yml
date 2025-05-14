@@ -158,17 +158,19 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # ✅ Required to push tags and create releases
+
     steps:
       - name: 📦 Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Needed to fetch all tags
+          fetch-depth: 0
 
       - name: 🧮 Get latest tag
         id: get_tag
         run: |
           git fetch --tags
-
           latest=$(git tag --sort=-v:refname | head -n 1)
           echo "Latest tag: $latest"
 
@@ -185,12 +187,9 @@ jobs:
           echo "tag=$new_tag" >> $GITHUB_OUTPUT
 
       - name: 🏷️ Create and push Git tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
           git tag ${{ steps.get_tag.outputs.tag }}
           git push origin ${{ steps.get_tag.outputs.tag }}
 
@@ -202,3 +201,5 @@ jobs:
           body: |
             🔄 Automated release triggered from push to main.
             🚀 Deployed version: ${{ steps.get_tag.outputs.tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
