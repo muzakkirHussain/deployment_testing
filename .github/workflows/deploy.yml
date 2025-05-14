@@ -151,51 +151,50 @@
 name: 📦 Create Release on Push to Main
 
 on:
-push:
-branches:
-  - main
+  push:
+    branches:
+      - main
 
 jobs:
-release:
-runs-on: ubuntu-latest
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required to fetch all tags
 
-steps:
-  - name: 📦 Checkout repository
-    uses: actions/checkout@v4
-    with:
-      fetch-depth: 0 # Required to fetch all tags
+      - name: 🧮 Get latest tag
+        id: get_tag
+        run: |
+          git fetch --tags
+          latest=$(git tag --sort=-v:refname | head -n 1)
+          echo "Latest tag: $latest"
 
-  - name: 🧮 Get latest tag
-    id: get_tag
-    run: |
-      git fetch --tags
-      latest=$(git tag --sort=-v:refname | head -n 1)
-      echo "Latest tag: $latest"
+          if [[ "$latest" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            major=${BASH_REMATCH[1]}
+            minor=${BASH_REMATCH[2]}
+            patch=${BASH_REMATCH[3]}
+            new_tag="v$major.$minor.$((patch + 1))"
+          else
+            new_tag="v1.0.0"
+          fi
 
-      if [[ "$latest" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-        major=${BASH_REMATCH[1]}
-        minor=${BASH_REMATCH[2]}
-        patch=${BASH_REMATCH[3]}
-        new_tag="v$major.$minor.$((patch + 1))"
-      else
-        new_tag="v1.0.0"
-      fi
+          echo "New tag: $new_tag"
+          echo "tag=$new_tag" >> $GITHUB_OUTPUT
 
-      echo "New tag: $new_tag"
-      echo "tag=$new_tag" >> $GITHUB_OUTPUT
+      - name: 🏷️ Create Git tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.get_tag.outputs.tag }}
+          git push origin ${{ steps.get_tag.outputs.tag }}
 
-  - name: 🏷️ Create Git tag
-    run: |
-      git config user.name "github-actions[bot]"
-      git config user.email "github-actions[bot]@users.noreply.github.com"
-      git tag ${{ steps.get_tag.outputs.tag }}
-      git push origin ${{ steps.get_tag.outputs.tag }}
-
-  - name: 📢 Create GitHub Release
-    uses: softprops/action-gh-release@v2
-    with:
-      tag_name: ${{ steps.get_tag.outputs.tag }}
-      name: Release ${{ steps.get_tag.outputs.tag }}
-      body: |
-        🔄 Automated release triggered from push to main.
-        🚀 Deployed version: ${{ steps.get_tag.outputs.tag }}
+      - name: 📢 Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_tag.outputs.tag }}
+          name: Release ${{ steps.get_tag.outputs.tag }}
+          body: |
+            🔄 Automated release triggered from push to main.
+            🚀 Deployed version: ${{ steps.get_tag.outputs.tag }}
