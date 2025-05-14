@@ -146,6 +146,7 @@
 #           # curl -f http://$SERVER:your-port/healthcheck || { echo "❌ Healthcheck failed"; exit 1; }
 
 #           echo "✅ Deployment finished successfully!"
+# Hello
 
 name: 📦 Create Release on Push to Main
 
