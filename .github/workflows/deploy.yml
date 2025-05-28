@@ -1,3 +1,221 @@
+# name: Deploy Vite App to Server
+
+# on:
+#   push:
+#     branches:
+#       - main
+#       - dev
+#       - testing
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: 📦 Checkout repo
+#         uses: actions/checkout@v4
+
+#       - name: 🔧 Install Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 20
+
+#       - name: 📥 Install dependencies
+#         run: npm install
+
+#       - name: 🛠️ Build Vite app
+#         run: npm run build
+
+#       - name: 🛡️ Install sshpass
+#         run: sudo apt-get update && sudo apt-get install -y sshpass
+
+#       - name: 🚀 Deploy to server
+#         env:
+#           SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+#         run: |
+#           echo "🔎 Detecting branch and setting server paths..."
+
+#           SERVER="122.186.126.218"
+#           if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
+#             REMOTE_DIR="/home/codoid/sathish_property/deploy_test"
+#           elif [[ $GITHUB_REF == 'refs/heads/dev' ]]; then
+#             REMOTE_DIR="/home/codoid/sathish_property/dev_deploy"
+#           elif [[ $GITHUB_REF == 'refs/heads/testing' ]]; then
+#             REMOTE_DIR="/home/codoid/sathish_property/deploy_test"
+#           else
+#             echo "❌ Branch not configured for deployment"
+#             exit 1
+#           fi
+
+#           echo "🌐 Server: $SERVER"
+#           echo "📂 Remote dir: $REMOTE_DIR"
+
+#           echo "🔄 Starting backup of existing dist folder (if any)..."
+
+#           # Backup using IST timezone
+#           sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no codoid@$SERVER "
+#             if [ -d $REMOTE_DIR/dist ]; then
+#               TIMESTAMP=\$(TZ='Asia/Kolkata' date +%Y%m%d-%H%M%S)
+#               mkdir -p $REMOTE_DIR/backups
+#               cp -r $REMOTE_DIR/dist $REMOTE_DIR/backups/dist_backup_\$TIMESTAMP
+#               echo '✅ Backup created at $REMOTE_DIR/backups/dist_backup_\$TIMESTAMP (IST)'
+#             else
+#               echo 'ℹ️ No existing dist folder found to backup'
+#             fi
+#           "
+
+#           echo "📤 Deploying new dist folder to server..."
+
+#           # Deploy dist folder (send dist folder itself)
+#           sshpass -p "$SSH_PASSWORD" rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" dist codoid@$SERVER:$REMOTE_DIR
+
+#           echo "✅ Deployment finished successfully!"
+
+# name: Deploy Vite App to Server
+
+# on:
+#   push:
+#     branches:
+#       - main
+#       - dev
+#       - testing
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: 📦 Checkout repo
+#         uses: actions/checkout@v4
+
+#       - name: 🔧 Install Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: 20
+
+#       - name: 📥 Install dependencies
+#         run: npm install
+
+#       - name: 🛠️ Build Vite app
+#         run: npm run build
+
+#       - name: 🛡️ Install sshpass
+#         run: sudo apt-get install -y sshpass
+
+#       - name: 🚀 Deploy to server
+#         env:
+#           SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+#         run: |
+#           echo "🔎 Detecting branch and setting server paths..."
+
+#           SERVER="122.186.126.218"
+#           if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
+#             REMOTE_DIR="/home/codoid/sathish_property/deploy_test/live_deploy"
+#           elif [[ $GITHUB_REF == 'refs/heads/dev' ]]; then
+#             REMOTE_DIR="/home/codoid/sathish_property/deploy_test/dev_deploy"
+#           elif [[ $GITHUB_REF == 'refs/heads/testing' ]]; then
+#             REMOTE_DIR="/home/codoid/sathish_property/deploy_test/testing_deploy"
+#           else
+#             echo "❌ Branch not configured for deployment"
+#             exit 1
+#           fi
+
+#           echo "🌐 Server: $SERVER"
+#           echo "📂 Remote dir: $REMOTE_DIR"
+
+#           echo "🔄 Starting backup of existing dist folder (if any)..."
+
+#           # Backup using IST timezone
+#           sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no codoid@$SERVER "
+#             if [ -d $REMOTE_DIR/dist ]; then
+#               TIMESTAMP=\$(TZ='Asia/Kolkata' date +%Y%m%d-%H%M%S)
+#               mkdir -p $REMOTE_DIR/backups
+#               cp -r $REMOTE_DIR/dist $REMOTE_DIR/backups/dist_backup_\$TIMESTAMP
+#               echo '✅ Backup created at $REMOTE_DIR/backups/dist_backup_\$TIMESTAMP (IST)'
+#             else
+#               echo 'ℹ️ No existing dist folder found to backup'
+#             fi
+#           "
+
+#           echo "📤 Deploying new dist folder to server..."
+
+#           # Deploy dist folder (send dist folder itself)
+#           sshpass -p "$SSH_PASSWORD" rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" dist codoid@$SERVER:$REMOTE_DIR
+
+#           # Validation step (optional)
+#           # curl -f http://$SERVER:your-port/healthcheck || { echo "❌ Healthcheck failed"; exit 1; }
+
+#           echo "✅ Deployment finished successfully!"
+
+# name: 📦 Create Release on Push to Main
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# jobs:
+#   release:
+#     runs-on: ubuntu-latest
+#     permissions:
+#       contents: write # Required to push tags and create releases
+
+#     steps:
+#       - name: 📦 Checkout repository
+#         uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0 # Fetch all history and tags
+
+#       - name: 🧮 Compute new tag
+#         id: get_tag
+#         run: |
+#           git fetch --tags
+
+#           # Get latest semantic version tag
+#           latest=$(git tag --sort=-v:refname | grep '^v[0-9]\+\.[0-9]\+\.[0-9]\+$' | head -n 1)
+#           echo "Latest tag: $latest"
+
+#           if [[ "$latest" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+#             major=${BASH_REMATCH[1]}
+#             minor=${BASH_REMATCH[2]}
+#             patch=${BASH_REMATCH[3]}
+#             next_patch=$((patch + 1))
+#           else
+#             major=1
+#             minor=0
+#             next_patch=0
+#           fi
+
+#           # Get branch, date, and short commit hash
+#           branch=$(echo "${GITHUB_REF#refs/heads/}" | sed 's/[^a-zA-Z0-9]/-/g')
+#           date=$(date +%Y%m%d)
+#           sha=$(git rev-parse --short HEAD)
+
+#           tag="v${major}.${minor}.${next_patch}-${branch}-${date}-${sha}"
+#           echo "Generated tag: $tag"
+#           echo "tag=$tag" >> $GITHUB_OUTPUT
+
+#       - name: 🏷️ Create and push Git tag
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         run: |
+#           git config user.name "github-actions[bot]"
+#           git config user.email "github-actions[bot]@users.noreply.github.com"
+#           git tag ${{ steps.get_tag.outputs.tag }}
+#           git push origin ${{ steps.get_tag.outputs.tag }}
+
+#       - name: 📢 Create GitHub Release
+#         uses: softprops/action-gh-release@v2
+#         with:
+#           tag_name: ${{ steps.get_tag.outputs.tag }}
+#           name: Release ${{ steps.get_tag.outputs.tag }}
+#           body: |
+#             🔄 Automated release from push to main.
+#             📦 Tag: ${{ steps.get_tag.outputs.tag }}
+#             📅 Date: ${{ github.event.head_commit.timestamp }}
+#             🧑‍💻 Committer: ${{ github.actor }}
+#             🔗 Commit: ${{ github.event.head_commit.url }}
+
 name: Deploy Vite App to Server
 
 on:
@@ -20,15 +238,41 @@ jobs:
         with:
           node-version: 20
 
-      - name: 📥 Install dependencies
-        run: npm install
+      # Cache npm dependencies
+      - name: 📦 Cache dependencies
+        uses: actions/cache@v3
+        id: npm-cache
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
 
+      # Install dependencies with cache
+      - name: 📥 Install dependencies
+        run: npm ci
+        # Use npm ci instead of npm install for faster, more reliable installs
+
+      # Cache build artifacts
+      - name: 💾 Cache build
+        uses: actions/cache@v3
+        with:
+          path: dist
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+      # Build with optimizations
       - name: 🛠️ Build Vite app
         run: npm run build
+        env:
+          # Enable build optimizations
+          NODE_ENV: production
 
       - name: 🛡️ Install sshpass
         run: sudo apt-get install -y sshpass
 
+      # Deploy with optimized rsync
       - name: 🚀 Deploy to server
         env:
           SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
@@ -52,8 +296,8 @@ jobs:
 
           echo "🔄 Starting backup of existing dist folder (if any)..."
 
-          # Backup using IST timezone
-          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no codoid@$SERVER "
+          # Backup using IST timezone (optimized to run in background)
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no -o ControlMaster=auto -o ControlPersist=60s codoid@$SERVER "
             if [ -d $REMOTE_DIR/dist ]; then
               TIMESTAMP=\$(TZ='Asia/Kolkata' date +%Y%m%d-%H%M%S)
               mkdir -p $REMOTE_DIR/backups
@@ -66,10 +310,14 @@ jobs:
 
           echo "📤 Deploying new dist folder to server..."
 
-          # Deploy dist folder (send dist folder itself)
-          sshpass -p "$SSH_PASSWORD" rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" dist codoid@$SERVER:$REMOTE_DIR
+          # Deploy dist folder with optimized rsync settings
+          # -z for compression, --delete to remove old files, -e for ssh options
+          # Added -O for optimized transfers and --compress-level=9 for maximum compression
+          sshpass -p "$SSH_PASSWORD" rsync -avzO --compress-level=9 --delete \
+            -e "ssh -o StrictHostKeyChecking=no -o ControlMaster=auto -o ControlPersist=60s" \
+            dist codoid@$SERVER:$REMOTE_DIR
 
-          # Validation step (optional)
+          # Validation step (uncomment and customize when ready)
           # curl -f http://$SERVER:your-port/healthcheck || { echo "❌ Healthcheck failed"; exit 1; }
 
           echo "✅ Deployment finished successfully!"
