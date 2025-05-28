@@ -1,75 +1,75 @@
-# name: Deploy Vite App to Server
+name: Deploy Vite App to Server
 
-# on:
-#   push:
-#     branches:
-#       - main
-#       - dev
-#       - testing
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - testing
 
-# jobs:
-#   deploy:
-#     runs-on: ubuntu-latest
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-#     steps:
-#       - name: 📦 Checkout repo
-#         uses: actions/checkout@v4
+    steps:
+      - name: 📦 Checkout repo
+        uses: actions/checkout@v4
 
-#       - name: 🔧 Install Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: 20
+      - name: 🔧 Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-#       - name: 📥 Install dependencies
-#         run: npm install
+      - name: 📥 Install dependencies
+        run: npm install
 
-#       - name: 🛠️ Build Vite app
-#         run: npm run build
+      - name: 🛠️ Build Vite app
+        run: npm run build
 
-#       - name: 🛡️ Install sshpass
-#         run: sudo apt-get install -y sshpass
+      - name: 🛡️ Install sshpass
+        run: sudo apt-get install -y sshpass
 
-#       - name: 🚀 Deploy to server
-#         env:
-#           SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
-#         run: |
-#           echo "🔎 Detecting branch and setting server paths..."
+      - name: 🚀 Deploy to server
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          echo "🔎 Detecting branch and setting server paths..."
 
-#           SERVER="122.186.126.218"
-#           if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
-#             REMOTE_DIR="/home/codoid/sathish_property/deploy_test/live_deploy"
-#           elif [[ $GITHUB_REF == 'refs/heads/dev' ]]; then
-#             REMOTE_DIR="/home/codoid/sathish_property/deploy_test/dev_deploy"
-#           elif [[ $GITHUB_REF == 'refs/heads/testing' ]]; then
-#             REMOTE_DIR="/home/codoid/sathish_property/deploy_test/testing_deploy"
-#           else
-#             echo "❌ Branch not configured for deployment"
-#             exit 1
-#           fi
+          SERVER="122.186.126.218"
+          if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
+            REMOTE_DIR="/home/codoid/sathish_property/deploy_test/live_deploy"
+          elif [[ $GITHUB_REF == 'refs/heads/dev' ]]; then
+            REMOTE_DIR="/home/codoid/sathish_property/deploy_test/dev_deploy"
+          elif [[ $GITHUB_REF == 'refs/heads/testing' ]]; then
+            REMOTE_DIR="/home/codoid/sathish_property/deploy_test/testing_deploy"
+          else
+            echo "❌ Branch not configured for deployment"
+            exit 1
+          fi
 
-#           echo "🌐 Server: $SERVER"
-#           echo "📂 Remote dir: $REMOTE_DIR"
+          echo "🌐 Server: $SERVER"
+          echo "📂 Remote dir: $REMOTE_DIR"
 
-#           echo "🔄 Starting backup of existing dist folder (if any)..."
+          echo "🔄 Starting backup of existing dist folder (if any)..."
 
-#           # Backup using IST timezone
-#           sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no codoid@$SERVER "
-#             if [ -d $REMOTE_DIR/dist ]; then
-#               TIMESTAMP=\$(TZ='Asia/Kolkata' date +%Y%m%d-%H%M%S)
-#               mkdir -p $REMOTE_DIR/backups
-#               cp -r $REMOTE_DIR/dist $REMOTE_DIR/backups/dist_backup_\$TIMESTAMP
-#               echo '✅ Backup created at $REMOTE_DIR/backups/dist_backup_\$TIMESTAMP (IST)'
-#             else
-#               echo 'ℹ️ No existing dist folder found to backup'
-#             fi
-#           "
+          # Backup using IST timezone
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no codoid@$SERVER "
+            if [ -d $REMOTE_DIR/dist ]; then
+              TIMESTAMP=\$(TZ='Asia/Kolkata' date +%Y%m%d-%H%M%S)
+              mkdir -p $REMOTE_DIR/backups
+              cp -r $REMOTE_DIR/dist $REMOTE_DIR/backups/dist_backup_\$TIMESTAMP
+              echo '✅ Backup created at $REMOTE_DIR/backups/dist_backup_\$TIMESTAMP (IST)'
+            else
+              echo 'ℹ️ No existing dist folder found to backup'
+            fi
+          "
 
-#           echo "📤 Deploying new dist folder to server..."
+          echo "📤 Deploying new dist folder to server..."
 
-#           # Deploy dist folder (send dist folder itself)
-#           sshpass -p "$SSH_PASSWORD" rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" dist codoid@$SERVER:$REMOTE_DIR
+          # Deploy dist folder (send dist folder itself)
+          sshpass -p "$SSH_PASSWORD" rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" dist codoid@$SERVER:$REMOTE_DIR
 
-#           # Validation step (optional)
-#           # curl -f http://$SERVER:your-port/healthcheck || { echo "❌ Healthcheck failed"; exit 1; }
+          # Validation step (optional)
+          # curl -f http://$SERVER:your-port/healthcheck || { echo "❌ Healthcheck failed"; exit 1; }
 
-#           echo "✅ Deployment finished successfully!"
+          echo "✅ Deployment finished successfully!"
